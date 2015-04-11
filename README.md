@@ -1,7 +1,7 @@
 Qlc
 ===
 
-Qlc is ported `qlc query interface` from erlang to elixir.
+Qlc is implementation `erlang's qlc interface` by elixir.
 
 The qlc module implements a query interface to QLC tables. 
 Typical QLC tables are ETS, Dets, and Mnesia tables. 
@@ -14,7 +14,7 @@ for more information, see
 
 ## build
 
-1. you found qlc.erl in 'stdlib/src' sure.
+1. find sure qlc.erl in 'stdlib/src'.
 2. mix test
 3. mix docs (option)
 
