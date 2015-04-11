@@ -12,3 +12,17 @@ Comprehensions (QLCs).
 for more information, see 
 [erlang reference manual](http://www.erlang.org/doc/man/qlc.html)
 
+## build
+
+1. you found qlc.erl in 'stdlib/src' sure.
+2. mix test
+3. 
+
+## example
+
+    iex> require Qlc
+    iex> list = [a: 1,b: 2,c: 3]
+    iex> qlc_handle = Qlc.q("[X || X = {K,V} <- L, K =/= Item]", 
+    ...>        [L: list, Item: :b])
+    ...> Qlc.e(qlc_handle)
+    [a: 1, c: 3]

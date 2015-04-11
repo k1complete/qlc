@@ -6,6 +6,9 @@ defmodule Qlc.Mixfile do
      version: "0.0.1",
      elixir: "~> 1.1-dev",
      name: "qlc for elixir",
+     source_url: "https://git.com/k1complete/qlc.git",
+     homepage_url: "https://git.com/k1complete/qlc.git",
+
      deps: deps]
   end
 
@@ -26,6 +29,8 @@ defmodule Qlc.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    []
+    [{:ex_doc, "~> 0.7", only: :dev, git: "https://github.com/elixir-lang/ex_doc.git"},
+     {:earmark, "~> 0.1", only: :dev}
+    ]
   end
 end

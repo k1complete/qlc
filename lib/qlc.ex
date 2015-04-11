@@ -145,16 +145,18 @@ defmodule Qlc do
   end
   @doc """
   fold qlc_handle with accumulator
-  
+
   ## example
-      iex> require Qlc
-      iex> list = [a: 1,b: 2,c: 3]
-      iex> qlc_handle = Qlc.q("[X || X = {K,V} <- L, K =/= Item]", 
-      ...>        [L: list, Item: :b])
-      ...> Qlc.fold(qlc_handle, [], fn({k,v}, acc) -> 
-      ...>   [{v, k}|acc]
-      ...> end)
-      [{3, :c}, {1, :a}]
+
+       iex> require Qlc
+       iex> list = [a: 1,b: 2,c: 3]
+       iex> qlc_handle = Qlc.q("[X || X = {K,V} <- L, K =/= Item]", 
+       ...>        [L: list, Item: :b])
+       ...> Qlc.fold(qlc_handle, [], fn({k,v}, acc) -> 
+       ...>   [{v, k}|acc]
+       ...> end)
+       [{3, :c}, {1, :a}]
+
    """
   @spec fold(qlc_handle, any, (any, any -> any), [any]) :: any
   def fold(qh, a, f, option \\ []) do
