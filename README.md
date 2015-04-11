@@ -16,7 +16,7 @@ for more information, see
 
 1. you found qlc.erl in 'stdlib/src' sure.
 2. mix test
-3. 
+3. mix docs (option)
 
 ## example
 
