@@ -6,8 +6,8 @@ defmodule Qlc.Mixfile do
      version: "0.0.1",
      elixir: "~> 1.1-dev",
      name: "qlc for elixir",
-     source_url: "https://github.com/k1complete/qlc.git",
-     homepage_url: "https://github.com/k1complete/qlc.git",
+     source_url: "https://github.com/k1complete/qlc",
+     homepage_url: "https://github.com/k1complete/qlc",
 
      deps: deps]
   end
