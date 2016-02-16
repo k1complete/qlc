@@ -1,15 +1,34 @@
 defmodule Qlc.Mixfile do
   use Mix.Project
 
-  def project do
-    [app: :qlc,
-     version: "0.0.1",
-     elixir: "~> 1.1-dev",
-     name: "qlc for elixir",
-     source_url: "https://github.com/k1complete/qlc",
-     homepage_url: "https://github.com/k1complete/qlc",
+  @url_docs "http://hexdocs.pm/qlc"
+  @url_github "https://github.com/k1complete/qlc"
 
-     deps: deps]
+  def project do
+    [
+      app: :qlc,
+      name: "qlc",
+      description: "QLC interface for Elixir",
+      package: %{
+        files: [
+          "lib",
+          "mix.exs",
+          "README.md"
+        ],
+        links: %{
+          "Docs" => @url_docs,
+          "GitHub" => @url_github
+        }
+      },
+      version: "0.0.1",
+      elixir: "~> 1.1",
+      deps: deps,
+      docs: [
+        extras: [ "README.md" ],
+        source_ref: "master",
+        source_url: @url_github
+      ]
+    ]
   end
 
   # Configuration for the OTP application
@@ -29,8 +48,9 @@ defmodule Qlc.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [{:ex_doc, "~> 0.7", only: :dev, git: "https://github.com/elixir-lang/ex_doc.git"},
-     {:earmark, "~> 0.1", only: :dev}
+    [
+      { :earmark, "~> 0.2.1",  optional: true, only: :dev },
+      { :ex_doc,  "~> 0.11.3", optional: true, only: :dev }
     ]
   end
 end
