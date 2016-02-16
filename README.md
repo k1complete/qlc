@@ -28,3 +28,8 @@ for more information, see
     ...>        [L: list, Item: :b])
     ...> Qlc.e(qlc_handle)
     [a: 1, c: 3]
+
+## licenses
+
+MIT licenses.
+

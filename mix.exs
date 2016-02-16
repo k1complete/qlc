@@ -15,12 +15,14 @@ defmodule Qlc.Mixfile do
           "mix.exs",
           "README.md"
         ],
+        maintainers: ["ODA Terutaka"],
+        licenses: ["MIT"],
         links: %{
           "Docs" => @url_docs,
           "GitHub" => @url_github
         }
       },
-      version: "0.0.1",
+      version: "1.0.0",
       elixir: "~> 1.1",
       deps: deps,
       docs: [
