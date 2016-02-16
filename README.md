@@ -1,6 +1,8 @@
 Qlc
 ===
 
+[![Build Status](https://travis-ci.org/k1complete/qlc.svg?branch=master)](https://travis-ci.org/k1complete/qlc)
+
 Qlc is implementation `erlang's qlc interface` by elixir.
 
 The qlc module implements a query interface to QLC tables. 
