@@ -86,7 +86,7 @@ defmodule Qlc do
     bind(t, :erl_eval.add_binding(k, v, b))
   end
   def bind(a) when is_list(a),
-  do: bind(a, :erl_eval.new_binding())
+  do: bind(a, :erl_eval.new_bindings())
 
   @doc """
   string to qlc_handle with variable bindings
