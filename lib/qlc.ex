@@ -30,7 +30,7 @@ defmodule Qlc do
   def exprs(str) do
     {:ok, m, _} =
       str
-      |> String.to_char_list
+      |> String.to_charlist
       |> :erl_scan.string
     {:ok, [expr]} = :erl_parse.parse_exprs(m)
     expr
@@ -100,7 +100,7 @@ defmodule Qlc do
   @spec string_to_handle(String.t, bindings, list) :: query_handle
   def string_to_handle(str, bindings, opt \\ []) when is_binary(str) do
     str
-    |> String.to_char_list
+    |> String.to_charlist
     |> :qlc.string_to_handle(bindings, opt)
   end
 

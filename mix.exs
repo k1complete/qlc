@@ -23,7 +23,7 @@ defmodule Qlc.Mixfile do
         }
       },
       version: "1.0.1",
-      elixir: "~> 1.2",
+      elixir: "~> 1.4",
       deps: deps(),
       docs: [
         extras: [ "README.md" ],
