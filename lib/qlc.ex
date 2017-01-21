@@ -1,10 +1,15 @@
 defmodule Qlc do
   @type bindings :: [any]
-  @type query_cursor :: Qlc.Cursor
-  @type expr :: any
-  @type qlc_opt :: record(:qlc_opt)
-  @type qlc_handle :: record(:qlc_handle)
-  @type qlc_lc :: record(:qlc_lc)
+  @type query_cursor :: Qlc.Cursor.t
+  @opaque abstract_expr :: :erl_parse.abstract_expr()
+  @type error_info :: :erl_parse.error_info()
+  @dialyzer [
+             {:nowarn_function, 'expr_to_handle': 3}
+            ]
+  @type expr :: :erl_parse.abstract_expr()
+  @type qlc_opt :: [any()] | tuple()
+  @opaque query_handle :: :qlc.query_handle() | [any()]
+  @type qlc_lc :: any 
 
   require Record
 
@@ -21,15 +26,13 @@ defmodule Qlc do
   @doc """
   string to erlang ast
   """
-  @spec exprs(String.t) :: expr
+  @spec exprs(String.t) :: expr() | no_return()
   def exprs(str) do
     {:ok, m, _} =
       str
-      |> String.to_char_list
+      |> String.to_charlist
       |> :erl_scan.string
-
     {:ok, [expr]} = :erl_parse.parse_exprs(m)
-
     expr
   end
 
@@ -70,11 +73,14 @@ defmodule Qlc do
   @doc """
   erlang ast with binding variables to qlc_handle
   """
+  @spec expr_to_handle([expr()], bindings, qlc_opt) :: query_handle()
   def expr_to_handle(expr, bind, opt) do
     {:ok, {:call, _, _q, handle}} = :qlc_pt.transform_expression(expr, bind)
     {:value, q, _} = :erl_eval.exprs(handle, bind)
     opt_r = options(opt, @optkeys, qlc_opt())
-    qlc_handle(h: qlc_lc(q, opt: opt_r))
+    lc = qlc_lc(q, opt: opt_r)
+    ret = qlc_handle(h: lc)
+    ret
   end
 
   @doc """
@@ -91,10 +97,10 @@ defmodule Qlc do
   @doc """
   string to qlc_handle with variable bindings
   """
-  @spec string_to_handle(String.t, bindings, list) :: qlc_handle
+  @spec string_to_handle(String.t, bindings, list) :: query_handle
   def string_to_handle(str, bindings, opt \\ []) when is_binary(str) do
     str
-    |> String.to_char_list
+    |> String.to_charlist
     |> :qlc.string_to_handle(bindings, opt)
   end
 
@@ -134,13 +140,12 @@ defmodule Qlc do
       [c: 3]
 
   """
-  @spec q(String.t, bindings, list) :: qlc_handle
+#  @spec q(String.t, bindings, list) :: query_handle
   defmacro q(string, bindings, opt \\ []) when is_binary(string) do
     exprl =
       (String.ends_with?(string, ".") && string || string <> ".")
-      |> exprs
-      |> Macro.escape
-
+      |> exprs()
+      |> Macro.escape()
     quote bind_quoted: [exprl: exprl, bindings: bindings, opt: opt] do
       Qlc.expr_to_handle(exprl, bindings, opt)
     end
@@ -149,7 +154,7 @@ defmodule Qlc do
   @doc """
   eval qlc_handle
   """
-  @spec e(qlc_handle) :: list
+  @spec e(query_handle) :: list
   defdelegate e(qh), to: :qlc
 
   @doc """
@@ -167,7 +172,7 @@ defmodule Qlc do
        [{3, :c}, {1, :a}]
 
    """
-  @spec fold(qlc_handle, any, (any, any -> any), [any]) :: any
+  @spec fold(query_handle, any, (any, any -> any), [any]) :: any
   def fold(qh, a, f, option \\ []) do
     :qlc.fold(f, a, qh, option)
   end
@@ -176,7 +181,7 @@ defmodule Qlc do
   create qlc cursor from qlc_handle
   (create processes)
   """
-  @spec cursor(qlc_handle) :: query_cursor
+  @spec cursor(query_handle) :: query_cursor
   def cursor(qh), do: %Qlc.Cursor{ c: :qlc.cursor(qh) }
 
   @doc """

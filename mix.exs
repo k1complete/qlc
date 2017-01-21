@@ -29,7 +29,12 @@ defmodule Qlc.Mixfile do
         extras: [ "README.md" ],
         source_ref: "master",
         source_url: @url_github
-      ]
+      ],
+      dialyzer: [plt_add_apps: [:mnesia], 
+                flags: ["-Wunmatched_returns", 
+                        "-Werror_handling", 
+                        "-Wrace_conditions", 
+                        "-Wunderspecs"]]
     ]
   end
 
@@ -52,7 +57,8 @@ defmodule Qlc.Mixfile do
   defp deps do
     [
       { :earmark, "~> 0.2.1",  optional: true, only: :dev },
-      { :ex_doc,  "~> 0.11.3", optional: true, only: :dev }
+      { :ex_doc,  "~> 0.11.3", optional: true, only: :dev },
+      {:dialyxir, "~> 0.3", only: [:dev]}
     ]
   end
 end

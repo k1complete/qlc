@@ -1,4 +1,5 @@
 defmodule Qlc.Cursor do
+  @type t :: %Qlc.Cursor{}
   defstruct c: nil
 end
 
