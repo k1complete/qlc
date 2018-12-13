@@ -99,9 +99,9 @@ defmodule Qlc do
   """
   @spec string_to_handle(String.t, bindings, list) :: query_handle
   def string_to_handle(str, bindings, opt \\ []) when is_binary(str) do
-    str
+    (String.ends_with?(str, ".") && str || str <> ".") 
     |> String.to_charlist
-    |> :qlc.string_to_handle(bindings, opt)
+    |> :qlc.string_to_handle(opt, bindings)
   end
 
   @doc """
@@ -141,16 +141,21 @@ defmodule Qlc do
 
   """
 #  @spec q(String.t, bindings, list) :: query_handle
-  defmacro q(string, bindings, opt \\ []) when is_binary(string) do
-    exprl =
-      (String.ends_with?(string, ".") && string || string <> ".")
-      |> exprs()
-      |> Macro.escape()
-    quote bind_quoted: [exprl: exprl, bindings: bindings, opt: opt] do
-      Qlc.expr_to_handle(exprl, bindings, opt)
+  defmacro q(string, bindings, opt \\ []) do
+    case is_binary(string) do
+      true ->
+        exprl = (String.ends_with?(string, ".") && string || string <> ".")
+          |> exprs()
+          |> Macro.escape()
+        quote bind_quoted: [exprl: exprl, bindings: bindings, opt: opt] do
+          Qlc.expr_to_handle(exprl, bindings, opt)
+        end
+      false ->
+        quote bind_quoted: [string: string, bindings: bindings, opt: opt] do
+          Qlc.string_to_handle(string, bindings, opt)
+        end
     end
   end
-
   @doc """
   eval qlc_handle
   """
