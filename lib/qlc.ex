@@ -1,14 +1,13 @@
 defmodule Qlc do
-  @type bindings :: [any]
+  @type binding_struct :: :erl_eval.binding_struct()
+  @type bindings :: Keyword.t
   @type query_cursor :: Qlc.Cursor.t
-  @opaque abstract_expr :: :erl_parse.abstract_expr()
+  @type abstract_expr :: :erl_parse.abstract_expr()
   @type error_info :: :erl_parse.error_info()
-  @dialyzer [
-             {:nowarn_function, 'expr_to_handle': 3}
-            ]
+  #@dialyzer [{:nowarn_function, :expr_to_handle, 3}]
   @type expr :: :erl_parse.abstract_expr()
   @type qlc_opt :: [any()] | tuple()
-  @opaque query_handle :: :qlc.query_handle() | [any()]
+  @type query_handle() :: :qlc.query_handle() 
   @type qlc_lc :: any 
 
   require Record
@@ -73,7 +72,7 @@ defmodule Qlc do
   @doc """
   erlang ast with binding variables to qlc_handle
   """
-  @spec expr_to_handle([expr()], bindings, qlc_opt) :: query_handle()
+  @spec expr_to_handle(expr(), binding_struct, qlc_opt) :: query_handle() | {:qlc_handle, tuple()}
   def expr_to_handle(expr, bind, opt) do
     {:ok, {:call, _, _q, handle}} = :qlc_pt.transform_expression(expr, bind)
     {:value, q, _} = :erl_eval.exprs(handle, bind)
@@ -86,18 +85,20 @@ defmodule Qlc do
   @doc """
   variable binding list to erlang_binding list
   """
-  @spec bind([Keyword], bindings) :: bindings
+  @spec bind(Keyword.t, binding_struct) :: binding_struct
   def bind([], b), do: b
   def bind([{k, v} | t], b) when is_atom(k) do
     bind(t, :erl_eval.add_binding(k, v, b))
   end
+  @spec bind(Keyword.t) :: binding_struct
+  #def bind(a) when Keyword.keyword?is_list(a),
   def bind(a) when is_list(a),
-  do: bind(a, :erl_eval.new_bindings())
+    do: bind(a, :erl_eval.new_bindings())
 
   @doc """
   string to qlc_handle with variable bindings
   """
-  @spec string_to_handle(String.t, bindings, list) :: query_handle
+  @spec string_to_handle(String.t, binding_struct, list) :: query_handle() | {:error,:qlc,{non_neg_integer() | {non_neg_integer(),pos_integer()},atom(),any()}}
   def string_to_handle(str, bindings, opt \\ []) when is_binary(str) do
     (String.ends_with?(str, ".") && str || str <> ".") 
     |> String.to_charlist
@@ -105,8 +106,10 @@ defmodule Qlc do
   end
 
   @doc """
-  string to qlc_handle with variable bindings
-  (string must be literal, because its a macro.)
+  string to qlc_handle with variable bindings.
+  string may be literal or variable.
+  If string is variable or function call, then
+  expanding to string_to_handle/3 automatically.
 
   qlc expression string
 
@@ -138,9 +141,13 @@ defmodule Qlc do
       ...>       [L: qlc_handle, Item: :c]) |>
       ...> Qlc.e
       [c: 3]
+      ...> query_string = "[X || X = {K, V} <- L, K =:= Item]"
+      ...> bindings = [L: list, Item: :b]
+      ...> Qlc.q(query_string, bindings) |> Qlc.e()
+      [b: 2]
 
   """
-#  @spec q(String.t, bindings, list) :: query_handle
+  #@spec q(String.t, bindings, list) :: query_handle
   defmacro q(string, bindings, opt \\ []) do
     case is_binary(string) do
       true ->
@@ -176,7 +183,7 @@ defmodule Qlc do
        ...> end)
        [{3, :c}, {1, :a}]
 
-   """
+  """
   @spec fold(query_handle, any, (any, any -> any), [any]) :: any
   def fold(qh, a, f, option \\ []) do
     :qlc.fold(f, a, qh, option)

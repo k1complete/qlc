@@ -31,5 +31,8 @@ defimpl Enumerable, for: Qlc.Cursor do
         reduce(qc, fun.(h, acc), fun)
     end
   end
-  
+
+  def slice(_qc) do
+    {:error, __MODULE__}
+  end
 end

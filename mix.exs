@@ -22,8 +22,8 @@ defmodule Qlc.Mixfile do
           "GitHub" => @url_github
         }
       },
-      version: "1.0.2",
-      elixir: "~> 1.4",
+      version: "1.0.3",
+      elixir: "~> 1.7",
       deps: deps(),
       docs: [
         extras: [ "README.md" ],
@@ -34,7 +34,8 @@ defmodule Qlc.Mixfile do
                 flags: ["-Wunmatched_returns", 
                         "-Werror_handling", 
                         "-Wrace_conditions", 
-                        "-Wunderspecs"]]
+                        "-Wunderspecs"
+                ]]
     ]
   end
 
@@ -56,9 +57,9 @@ defmodule Qlc.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
-      { :earmark, "~> 0.2.1",  optional: true, only: :dev },
-      { :ex_doc,  "~> 0.11.3", optional: true, only: :dev },
-      {:dialyxir, "~> 0.3", only: [:dev]}
+      { :earmark, "~> 1.3",  optional: true, only: :dev },
+      { :ex_doc,  "~> 0.19", optional: true, only: :dev },
+      {:dialyxir, "~> 0.5", only: [:dev]}
     ]
   end
 end

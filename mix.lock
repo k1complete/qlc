@@ -1,3 +1,8 @@
-%{"dialyxir": {:hex, :dialyxir, "0.4.1", "236056d6acd25f740f336756c0f3b5dd6e2f0156074bc15f3b779aeee15390c8", [:mix], []},
-  "earmark": {:hex, :earmark, "0.2.1", "ba6d26ceb16106d069b289df66751734802777a3cbb6787026dd800ffeb850f3", [:mix], []},
-  "ex_doc": {:hex, :ex_doc, "0.11.5", "0dc51cb84f8312162a2313d6c71573a9afa332333d8a332bb12540861b9834db", [:mix], [{:earmark, "~> 0.1.17 or ~> 0.2", [hex: :earmark, optional: true]}]}}
+%{
+  "dialyxir": {:hex, :dialyxir, "0.5.1", "b331b091720fd93e878137add264bac4f644e1ddae07a70bf7062c7862c4b952", [:mix], []},
+  "earmark": {:hex, :earmark, "1.3.1", "73812f447f7a42358d3ba79283cfa3075a7580a3a2ed457616d6517ac3738cb9", [:mix], []},
+  "ex_doc": {:hex, :ex_doc, "0.19.2", "6f4081ccd9ed081b6dc0bd5af97a41e87f5554de469e7d76025fba535180565f", [:mix], [{:earmark, "~> 1.2", [hex: :earmark, optional: false]}, {:makeup_elixir, "~> 0.10", [hex: :makeup_elixir, optional: false]}]},
+  "makeup": {:hex, :makeup, "0.6.0", "e0fd985525e8d42352782bd76253105fbab0a783ac298708ca9020636c9568af", [:mix], [{:nimble_parsec, "~> 0.5.0", [hex: :nimble_parsec, optional: false]}]},
+  "makeup_elixir": {:hex, :makeup_elixir, "0.11.0", "aa3446f67356afa5801618867587a8863f176f9c632fb62b20f49bd1ea335e8a", [:mix], [{:makeup, "~> 0.6", [hex: :makeup, optional: false]}]},
+  "nimble_parsec": {:hex, :nimble_parsec, "0.5.0", "90e2eca3d0266e5c53f8fbe0079694740b9c91b6747f2b7e3c5d21966bba8300", [:mix], []},
+}
