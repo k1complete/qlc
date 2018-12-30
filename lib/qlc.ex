@@ -7,10 +7,120 @@ defmodule Qlc do
   #@dialyzer [{:nowarn_function, :expr_to_handle, 3}]
   @type expr :: :erl_parse.abstract_expr()
   @type qlc_opt :: [any()] | tuple()
+  @type table_options :: Keyword.t | tuple()
   @type query_handle() :: :qlc.query_handle() 
   @type qlc_lc :: any 
+  @type traverse_fun :: traverse_fun0 | traverse_fun1
+  @type traverse_fun1 :: (:ets.match_spec() -> traverse_result()) 
+  @type traverse_fun0 :: ( () -> traverse_result() )
+  @type traverse_result :: term() | objects()
+  @type objects :: [] | [term() | object_list() ]
+  @type object_list :: traverse_fun0() | objects()
+  @typedoc """
+  detect order if smaller =< bigger then return true else false.
+  """
+  @type order_fun :: ((smaller :: term(), bigger :: term()) -> boolean())
+  @typedoc """
+  order by elixir native ascending, descending or order_fun().
+  default is ascending.
+  """
+  @type order_option :: :ascending | :descending | order_fun()
+  @typedoc """
+  unique option for sorting.
+
+  only the first of a sequence of terms that compare equal(==) is output
+  if this option is set to true. defaults to false.
+  """
+  @type unique_option:: {:unique, boolean()}
+
+  @typedoc """
+  sorting option.
+
+  see `:qlc.sort/2`
+  """
+  @type sort_option :: {:order, order_option()} |
+                       unique_option() | any()
+  @type sort_options :: [sort_option()] |
+                        sort_option() 
+
+  @typedoc """
+  key position for sorting tuples.
+
+  indexed by 0 (elixir's tuple element indexing).
+  """
+  @type key_pos :: non_neg_integer() | [ non_neg_integer() ]
 
   require Record
+  @doc """
+  Returns a query handle. When evaluating returned query handle, 
+  the answers to query handle argument are sorted by the query_handle() 
+  options.
+
+  ## example
+
+      iex> list = [a: 3, b: 2, c: 1]
+      iex> Qlc.q("[ X || X <- L]", [L: list]) |>
+      ...> Qlc.sort(order: :descending) |>
+      ...> Qlc.e()
+      [c: 1, b: 2, a: 3]
+
+  """
+  @spec sort(query_handle(), sort_options()) :: query_handle()
+  defdelegate sort(qh, opt), to: :qlc
+  @doc """
+  sorts tuples on query_handle. The sort is performed on the element(s)
+  mentioned in key_pos. If two tuples compare equal (==) on one element,
+  the next element according to key_pos is compared. The sort is stable.
+  key_pos is indexing by 0.
+
+  ## example
+
+      iex> list = [a: 3, b: 2, c: 1]
+      iex> Qlc.q("[ X || X <- L]", [L: list]) |>
+      ...> Qlc.keysort(1, order: :ascending) |>
+      ...> Qlc.e()
+      [c: 1, b: 2, a: 3]
+
+      iex> list = [a: 1, b: 2, c: 3, d: 2]
+      ...> Qlc.q("[X || X <- L]", [L: list]) |>
+      ...> Qlc.keysort(1, order: :descending, unique: true) |>
+      ...> Qlc.e()
+      [c: 3, b: 2, a: 1]
+
+
+  """
+  @spec keysort(query_handle(), key_pos(), sort_options()) :: query_handle()
+  def keysort(qh, keypos, opt \\ []) when keypos >= 0 do
+    :qlc.keysort(keypos + 1, qh, opt)
+  end
+  @doc """
+  create qlc handle for any. see `:qlc.table/2`
+
+  ## example
+  
+      iex> q = Qlc.table(fn() -> [a: 1, b: 2, c: 3] end, [])
+      ...> Qlc.q("[X || X = {K, V} <- L, K =:= Y]", [L: q, Y: :a]) |>
+      ...> Qlc.e()
+      [a: 1]
+      
+      iex> tf = fn(r, f) -> 
+      ...>    [r.first |
+      ...>     fn() ->
+      ...>       last = r.last 
+      ...>       case r.first do
+      ...>         x when x < last -> 
+      ...>           f.(Range.new(r.first+1, last), f)
+      ...>         _x -> []
+      ...>       end
+      ...>     end] 
+      ...>    end
+      ...> trf = fn(r) -> tf.(r, tf) end
+      ...> q = Qlc.table(fn() -> trf.(1..3) end, [])
+      ...> Qlc.q("[X || X <- Q, X > 2]", [Q: q]) |> Qlc.e()
+      [3]
+  """
+  @spec table(traverse_fun(), table_options()) :: query_handle()
+  def table(traverse_fun, option \\ []), do: :qlc.table(traverse_fun, option)
 
   @qlc_handle_fields Record.extract(:qlc_handle, from_lib: "stdlib/src/qlc.erl")
   @qlc_opt_fields Record.extract(:qlc_opt, from_lib: "stdlib/src/qlc.erl")
@@ -127,7 +237,7 @@ defmodule Qlc do
 
       ListExpression :: Qlc_handle or list()
 
-      Qlc_handle :: returned from Qlc.table/2, Qlc.sort/2, Qlc.keysort/2
+      Qlc_handle :: returned from Qlc.table/2, Qlc.sort/2, Qlc.keysort/3
                                 Qlc.q/2, Qlc.string_to_handle/2
   ## example
 
@@ -200,7 +310,7 @@ defmodule Qlc do
   delete qlc cursor
   (kill processes)
   """
-  @spec delete_cursor(Qlc.Cursor) :: :ok
+  @spec delete_cursor(Qlc.Cursor.t) :: :ok
   def delete_cursor(qc), do: :qlc.delete_cursor(qc.c)
 
 end
