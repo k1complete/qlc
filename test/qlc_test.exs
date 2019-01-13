@@ -52,7 +52,7 @@ defmodule QlcTest do
               [U: :mnesia.table(:user),
                C: :mnesia.table(:company),
                UC: :mnesia.table(:user_company),
-               I: 1]) 
+               I: 1], [cache: true, max_lookup: 1, unique: true]) 
     :mnesia.transaction(fn() ->
                           :ok = :mnesia.write(u)
                         end)

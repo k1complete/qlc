@@ -6,7 +6,8 @@ defmodule Qlc do
   @type error_info :: :erl_parse.error_info()
   #@dialyzer [{:nowarn_function, :expr_to_handle, 3}]
   @type expr :: :erl_parse.abstract_expr()
-  @type qlc_opt :: [any()] | tuple()
+  @type qlc_opt :: tuple()
+  @type qlc_opt_list :: [{atom(), any()}|atom()]
   @type table_options :: Keyword.t | tuple()
   @type query_handle() :: :qlc.query_handle() 
   @type qlc_lc :: any 
@@ -90,9 +91,7 @@ defmodule Qlc do
 
   """
   @spec keysort(query_handle(), key_pos(), sort_options()) :: query_handle()
-  def keysort(qh, keypos, opt \\ []) when keypos >= 0 do
-    :qlc.keysort(keypos + 1, qh, opt)
-  end
+  def keysort(qh, keypos, opt \\ [])  when keypos >= 0,  do: :qlc.keysort(keypos + 1, qh, opt)
   @doc """
   create qlc handle for any. see `:qlc.table/2`
 
@@ -125,12 +124,12 @@ defmodule Qlc do
   @qlc_handle_fields Record.extract(:qlc_handle, from_lib: "stdlib/src/qlc.erl")
   @qlc_opt_fields Record.extract(:qlc_opt, from_lib: "stdlib/src/qlc.erl")
   @qlc_lc_fields Record.extract(:qlc_lc, from_lib: "stdlib/src/qlc.erl")
-
+  @qlc_bool_opt_keys [:cache, :unique]
   Record.defrecord :qlc_handle, @qlc_handle_fields
   Record.defrecord :qlc_opt, @qlc_opt_fields
   Record.defrecord :qlc_lc, @qlc_lc_fields
 
-  @optkeys [:max_lookup,:cache, :join,:lookup,:unique]
+  #@optkeys [:max_lookup,:cache, :join,:lookup,:unique]
 
   @doc """
   string to erlang ast
@@ -144,49 +143,36 @@ defmodule Qlc do
     {:ok, [expr]} = :erl_parse.parse_exprs(m)
     expr
   end
-
   @doc """
   optoin list to record(:qlc_opt)
   """
-  @spec options(list, list, qlc_opt) :: qlc_opt
-  def options(opt, keys, acc) when is_list(keys) do
-    Enum.reduce(keys, acc, fn(key, acc) ->
-      default = if Enum.member?(opt, key) do
-        case key do
-          :unique -> true
-          :cache -> true
-        end
+  @spec options(list, atom, Keyword.t) :: qlc_opt
+  def options(opt, tagname, field_defs) do
+    bool_opts = Enum.filter(field_defs, 
+      fn({_k, v}) -> 
+        v == false 
+      end)
+    |> Keyword.keys()
+    v = Enum.map(opt, fn(e) ->
+      if (Enum.member?(bool_opts, e)) do
+        {e, true}
       else
-        nil
-      end
-
-      case Keyword.get(opt, key, default) do
-        nil -> acc
-        val ->
-          # This is gross, but it's because we're using
-          # records. Otherwise you could just do this:
-          #
-          # qlc_opt(acc, Keyword.new([ { k, val }]))
-          #
-          case key do
-            :cache -> qlc_opt(acc, cache: val)
-            :max_lookup -> qlc_opt(acc, max_lookup: val)
-            :lookup -> qlc_opt(acc, lookup: val)
-            :join -> qlc_opt(acc, join: val)
-            :unique -> qlc_opt(acc, unique: val)
-          end
+        e
       end
     end)
+    |> Keyword.merge(field_defs, fn(_k, v1, _v2) -> v1 end)
+    |> Keyword.values()
+    List.to_tuple([tagname | v])
   end
 
   @doc """
   erlang ast with binding variables to qlc_handle
   """
-  @spec expr_to_handle(expr(), binding_struct, qlc_opt) :: query_handle() | {:qlc_handle, tuple()}
+  @spec expr_to_handle(expr(), binding_struct, qlc_opt_list) :: query_handle() | {:qlc_handle, tuple()}
   def expr_to_handle(expr, bind, opt) do
     {:ok, {:call, _, _q, handle}} = :qlc_pt.transform_expression(expr, bind)
     {:value, q, _} = :erl_eval.exprs(handle, bind)
-    opt_r = options(opt, @optkeys, qlc_opt())
+    opt_r = options(opt, :qlc_opt, @qlc_opt_fields)
     lc = qlc_lc(q, opt: opt_r)
     ret = qlc_handle(h: lc)
     ret
@@ -265,11 +251,11 @@ defmodule Qlc do
           |> exprs()
           |> Macro.escape()
         quote bind_quoted: [exprl: exprl, bindings: bindings, opt: opt] do
-          Qlc.expr_to_handle(exprl, bindings, opt)
+          Qlc.expr_to_handle(exprl, Qlc.bind(bindings), opt)
         end
       false ->
         quote bind_quoted: [string: string, bindings: bindings, opt: opt] do
-          Qlc.string_to_handle(string, bindings, opt)
+          Qlc.string_to_handle(string, Qlc.bind(bindings), opt)
         end
     end
   end
