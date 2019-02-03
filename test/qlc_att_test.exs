@@ -25,6 +25,8 @@ defmodule QlcTest2 do
     query = "[X || X = {K,V} <- L, K =/= Item]"
     s = Qlc.q(query, [L: d, Item: "b"])
     assert([{"a", 1}] ==  Qlc.e(s))
+    q = %Qlc.Cursor{}
+    assert(is_map(q))
   end
   test "opt" do
     m = Qlc.qlc_opt()

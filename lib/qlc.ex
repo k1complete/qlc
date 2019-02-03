@@ -18,10 +18,14 @@ defmodule Qlc do
   @type objects :: [] | [term() | object_list() ]
   @type object_list :: traverse_fun0() | objects()
   @typedoc """
+  order function
+
   detect order if smaller =< bigger then return true else false.
   """
   @type order_fun :: ((smaller :: term(), bigger :: term()) -> boolean())
   @typedoc """
+  order option
+
   order by elixir native ascending, descending or order_fun().
   default is ascending.
   """
@@ -53,7 +57,9 @@ defmodule Qlc do
 
   require Record
   @doc """
-  Returns a query handle. When evaluating returned query handle, 
+  Returns a query handle. 
+
+  When evaluating returned query handle, 
   the answers to query handle argument are sorted by the query_handle() 
   options.
 
@@ -65,11 +71,15 @@ defmodule Qlc do
       ...> Qlc.e()
       [c: 1, b: 2, a: 3]
 
+
+
   """
   @spec sort(query_handle(), sort_options()) :: query_handle()
   defdelegate sort(qh, opt), to: :qlc
   @doc """
-  sorts tuples on query_handle. The sort is performed on the element(s)
+  sorts tuples on query_handle. 
+
+  The sort is performed on the element(s)
   mentioned in key_pos. If two tuples compare equal (==) on one element,
   the next element according to key_pos is compared. The sort is stable.
   key_pos is indexing by 0.
@@ -81,7 +91,7 @@ defmodule Qlc do
       ...> Qlc.keysort(1, order: :ascending) |>
       ...> Qlc.e()
       [c: 1, b: 2, a: 3]
-
+      
       iex> list = [a: 1, b: 2, c: 3, d: 2]
       ...> Qlc.q("[X || X <- L]", [L: list]) |>
       ...> Qlc.keysort(1, order: :descending, unique: true) |>
@@ -124,7 +134,7 @@ defmodule Qlc do
   @qlc_handle_fields Record.extract(:qlc_handle, from_lib: "stdlib/src/qlc.erl")
   @qlc_opt_fields Record.extract(:qlc_opt, from_lib: "stdlib/src/qlc.erl")
   @qlc_lc_fields Record.extract(:qlc_lc, from_lib: "stdlib/src/qlc.erl")
-  @qlc_bool_opt_keys [:cache, :unique]
+  #@qlc_bool_opt_keys [:cache, :unique]
   Record.defrecord :qlc_handle, @qlc_handle_fields
   Record.defrecord :qlc_opt, @qlc_opt_fields
   Record.defrecord :qlc_lc, @qlc_lc_fields
@@ -203,11 +213,11 @@ defmodule Qlc do
 
   @doc """
   string to qlc_handle with variable bindings.
-  string may be literal or variable.
-  If string is variable or function call, then
-  expanding to string_to_handle/3 automatically.
 
-  qlc expression string
+  string may be literal or variable.  If string is variable or
+  function call, then expanding to string_to_handle/3 automatically.
+  elixir expression using bang macro are available to interpolation, 
+  but expanding to erlang expression string. see examples.
 
   ## syntax
 
@@ -241,6 +251,14 @@ defmodule Qlc do
       ...> bindings = [L: list, Item: :b]
       ...> Qlc.q(query_string, bindings) |> Qlc.e()
       [b: 2]
+      iex> ## Qlc.Record.defrecord(:user, [id: nil, name: nil, age: nil])
+      iex> list = [user(id: 1, name: :foo, age: 10),
+      ...>         user(id: 2, name: :bar, age: 20),
+      ...>         user(id: 3, name: :baz, age: 30)]
+      ...> query_string = "[X || X <- L, \#{user!(X, :age)} < Age]"
+      ...> bindings = [L: list, Age: 20]
+      ...> Qlc.q(query_string, bindings) |> Qlc.e()
+      [{:user, 1, :foo, 10}]
 
   """
   #@spec q(String.t, bindings, list) :: query_handle
@@ -287,6 +305,7 @@ defmodule Qlc do
 
   @doc """
   create qlc cursor from qlc_handle
+
   (create processes)
   """
   @spec cursor(query_handle) :: query_cursor
@@ -294,6 +313,7 @@ defmodule Qlc do
 
   @doc """
   delete qlc cursor
+
   (kill processes)
   """
   @spec delete_cursor(Qlc.Cursor.t) :: :ok
