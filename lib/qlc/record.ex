@@ -46,8 +46,8 @@ defmodule Qlc.Record do
             end
         ##:io.format('[~p]~n', [y])
         i = Enum.find_index(f, fn({k, v}) -> k == a end) + 2
-        quote bind_quoted: [x: y, i: i] do
-          :io_lib.format(' element(~p, ~s) ', [i, x])
+        quote do
+          :io_lib.format(' element(~p, ~s) ', [unquote(i), unquote(y)])
         end
       end
     end
