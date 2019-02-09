@@ -38,8 +38,6 @@ Qlc.Record.defrecord/2 defines the bang!/2 macro expanding to
 
 ### Examples
 
-Interactive Elixir (1.8.0-dev) - press Ctrl+C to exit (type h() ENTER for help)
-
     iex(1)> require Qlc.Record
     Qlc.Record
     iex(2)> require Qlc
