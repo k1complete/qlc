@@ -38,23 +38,64 @@ Qlc.Record.defrecord/2 defines the bang!/2 macro expanding to
 
 ### Examples
 
-    iex> require Qlc.Record
-    iex> require Qlc
-    iex> Qlc.Record.defrecord(:item, [id: nil, name: nil, weight: nil])
-    iex> item(2, :a, 1) == {:item, :a, 1}
-    true
-    item> item!(item(2, :a, 1), :name)
-    element(3, {:item, :a, 1})
-    
-    iex> list = [item(1, :a, 1), item(2, :b, 10), item(3, :c, 20)]
-    iex> Qlc.q("[ X || X <- L, (N = #{item!(X)}) =:= Name]", 
-    ...>   [L: list, 
-    ...>    Name: :b]) |>
-    ...> Qlc.sort(order: :descending) |>
-    ...> Qlc.e()
+Interactive Elixir (1.8.0-dev) - press Ctrl+C to exit (type h() ENTER for help)
+
+    iex(1)> require Qlc.Record
+    Qlc.Record
+    iex(2)> require Qlc
+    Qlc
+    iex(3)> defmodule A do
+    ...(3)> Qlc.Record.defrecord(:item, [id: nil, name: nil, age: nil])
+    ...(3)> end
+    {:module, A,
+     <<70, 79, 82, 49, 0, 0, 10, 48, 66, 69, ...>>, {:item!, 2}}
+    iex(4)> require A
+    A
+    iex(5)> import A
+    A
+    iex(6)> item()
+    {:item, nil, nil, nil}
+    iex(7)> item([id: 1, name: :foo, age: 10])
+    {:item, 1, :foo, 10}
+    iex(8)> item!({:item, 1, :foo, 10}, :age)
+    [
+      32,
+      101,
+      108,
+      101,
+      109,
+      101,
+      110,
+      116,
+      40,
+      '4',
+      44,
+      32,
+      [[123, ['item', 44, '1', 44, 'foo', 44, '10'], 125]],
+      41,
+      32
+    ]
+    iex(9)> item!({:item, 1, :foo, 10}, :age)|>List.flatten()
+    ' element(4, {item,1,foo,10}) '
+    iex(10)> list = [item(id: 1, name: :a, age: 1), 
+    ...(10)>         item(id: 2, name: :b, age: 10), 
+    ...(10)>         item(id: 3, name: :c, age: 20)]
+    [{:item, 1, :a, 1}, {:item, 2, :b, 10}, {:item, 3, :c, 20}]
+    iex(11)> Qlc.q("[ X || X <- L, (N = #{item!(X, :name)}) =:= Name]", 
+    ...(11)>      [L: list, Name: :b]) |>
+    ...(11)> Qlc.sort(order: :descending) |>
+    ...(11)> Qlc.e()
     [{:item, 2, :b, 10}]
 
+    ## Cannot use bang!/2 macro with variable, can use literal only
+
+    iex(12)> b = item([id: 1, name: :foo, age: 10])
+    {:item, 1, :foo, 10}
+    iex(13)> item!(b, :name)
+    warning: variable "b" does not exist and is being expanded to "b()", please use parentheses to remove the ambiguity or change the variable name
+    iex(14)> 
+
 ## licenses
-
+    
 MIT licenses.
-
+    

@@ -41,7 +41,7 @@ defmodule Qlc.Record do
               {:__aliases__, _, [y]} ->
                 Atom.to_string(y)
               x ->
-                {y, []} = Code.eval_quoted(x)
+                {y, []} = Code.eval_quoted(x, [], __CALLER__)
                 :io_lib.format('~p', [y])
             end
         ##:io.format('[~p]~n', [y])
