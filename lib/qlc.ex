@@ -296,6 +296,26 @@ defmodule Qlc do
        ...>   [{v, k}|acc]
        ...> end)
        [{3, :c}, {1, :a}]
+       iex> :mnesia.create_table(:t1, [{:attributes, [:k, :v]}])
+       {:atomic, :ok}
+       iex> :mnesia.transaction(fn() ->
+       ...>   Qlc.fold(qlc_handle, [], fn({k, v}, acc) ->
+       ...>     :mnesia.write({:t1, k, v})
+       ...>     [{:t1, k, v}|acc]
+       ...>   end)
+       ...> end)
+       {:atomic, [{:t1, :c, 3}, {:t1, :a, 1}]}
+       iex> qh = Qlc.q("[X || X = {T, K, V} <- L, K =/= Item]",
+       ...>        [L: :mnesia.table(:t1), Item: :a])
+       iex> :mnesia.transaction(fn() ->
+       ...>   Qlc.fold(qh, [], fn({t, k, v}, acc) ->
+       ...>     IO.inspect({t, k, v})
+       ...>     :ok = :mnesia.write({:t1, k, v+1})
+       ...>     [{:t1, k, v+1}|acc]
+       ...>   end)
+       ...> end)
+       {:atomic, [{:t1, :c, 4}]}
+
 
   """
   @spec fold(query_handle, any, (any, any -> any), [any]) :: any
@@ -318,5 +338,33 @@ defmodule Qlc do
   """
   @spec delete_cursor(Qlc.Cursor.t) :: :ok
   def delete_cursor(qc), do: :qlc.delete_cursor(qc.c)
+
+  @doc """
+  Returns some or all of the remaining answers to a Qlc.Cursor. Only
+  the owner of Qlc.Cursor can retrieve answers.
+
+  Optional argument number_of_answers determines the maximum number of
+  answers returned. Defaults to 10. If less than the requested number
+  of answers is returned, subsequent calls to next_answers return [].
+
+  Examples:
+
+       iex> require Qlc
+       iex> list = [a: 1, b: 2,c: 3, d: 4, e: 5, f: 6]
+       iex> qlc_handle = Qlc.q("[X || X = {K,V} <- L]",
+       ...>        [L: list])
+       ...> qc = Qlc.cursor(qlc_handle)
+       ...> Qlc.next_answers(qc, 2)
+       [{:a, 1}, {:b, 2}]
+       ...> Qlc.next_answers(qc, 2)
+       [{:c, 3}, {:d, 4}]
+       ...> Qlc.delete_cursor(qc)
+       :ok
+    
+  """
+  @spec next_answers(Qlc.Cursor.t, non_neg_integer) :: [any]
+  def next_answers(%Qlc.Cursor{c: c} = _qc, number_of_answers \\ 10) do
+    :qlc.next_answers(c, number_of_answers)
+  end
 
 end
