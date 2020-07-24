@@ -130,10 +130,19 @@ defmodule Qlc do
   """
   @spec table(traverse_fun(), table_options()) :: query_handle()
   def table(traverse_fun, option \\ []), do: :qlc.table(traverse_fun, option)
-
-  @qlc_handle_fields Record.extract(:qlc_handle, from_lib: "stdlib/src/qlc.erl")
-  @qlc_opt_fields Record.extract(:qlc_opt, from_lib: "stdlib/src/qlc.erl")
-  @qlc_lc_fields Record.extract(:qlc_lc, from_lib: "stdlib/src/qlc.erl")
+  try do 
+    @qlc_handle_fields Record.extract(:qlc_handle, from_lib: "stdlib/src/qlc.erl")
+    @qlc_opt_fields Record.extract(:qlc_opt, from_lib: "stdlib/src/qlc.erl")
+    @qlc_lc_fields Record.extract(:qlc_lc, from_lib: "stdlib/src/qlc.erl")
+  rescue
+    RuntimeError -> 
+      require Logger
+      Logger.info(
+        "Qlc: OTP source distribution not installed, use local definition")
+      @qlc_handle_fields [:h]
+      @qlc_opt_fields [unique: false, cache: false, max_lookup: -1, join: :any, tmpdir: '', lookup: :any, max_list: 512*1024, tmpdir_usage: :allowed ]
+      @qlc_lc_fields [:lc, :opt]
+  end
   #@qlc_bool_opt_keys [:cache, :unique]
   Record.defrecord :qlc_handle, @qlc_handle_fields
   Record.defrecord :qlc_opt, @qlc_opt_fields
