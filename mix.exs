@@ -22,7 +22,7 @@ defmodule Qlc.Mixfile do
           "GitHub" => @url_github
         }
       },
-      version: "1.0.7",
+      version: "1.0.8",
       elixir: "~> 1.7",
       deps: deps(),
       docs: [
