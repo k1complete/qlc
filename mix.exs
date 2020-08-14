@@ -58,7 +58,7 @@ defmodule Qlc.Mixfile do
   defp deps do
     [
       { :earmark, "~> 1.3",  optional: true, only: :dev },
-      { :ex_doc,  "~> 0.19", optional: true, only: :dev },
+      { :ex_doc,  "~> 0.22", optional: true, only: :dev },
       {:dialyxir, "~> 0.5", only: [:dev]}
     ]
   end
