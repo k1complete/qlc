@@ -289,7 +289,7 @@ defmodule Qlc do
   @doc """
   eval qlc_handle
   """
-  @spec e(query_handle) :: list
+  @spec e(query_handle) :: list | {:error, module, any}
   defdelegate e(qh), to: :qlc
 
   @doc """
