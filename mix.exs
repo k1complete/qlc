@@ -22,7 +22,7 @@ defmodule Qlc.Mixfile do
           "GitHub" => @url_github
         }
       },
-      version: "1.0.8",
+      version: "1.0.9",
       elixir: "~> 1.7",
       deps: deps(),
       docs: [
@@ -59,7 +59,7 @@ defmodule Qlc.Mixfile do
     [
       { :earmark, "~> 1.3",  optional: true, only: :dev },
       { :ex_doc,  "~> 0.22", optional: true, only: :dev },
-      {:dialyxir, "~> 0.5", only: [:dev]}
+      {:dialyxir, "~> 1.1", only: [:dev]}
     ]
   end
 end
