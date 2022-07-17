@@ -25,18 +25,15 @@ defmodule Qlc.Record do
 
 
   """
-  defmacro defrecord(tag, args) do
-    vtag = :"#{tag}!"
-    quote do 
+  defmacro defrecord(name, tag \\ nil, args) do
+    vname = :"#{name}!"
+    quote do
       require Elixir.Record
-      m = unquote(tag)
+      #m = unquote(tag)
       #IO.inspect(tag: quote do: unquote(m))
-      Elixir.Record.defrecord(unquote(tag), unquote(args))
-      def __fields__(unquote(tag)) do
-        Elixir.Record.__fields__(unquote(tag), unquote(args))
-      end
-      defmacro unquote(vtag)(x,a) do
-        f = Elixir.Record.__fields__(unquote(tag), unquote(args))
+      Elixir.Record.defrecord(unquote(name), unquote(tag), unquote(args))
+      defmacro unquote(vname)(x,a) do
+        f = unquote(args)
         y = case x do
               {:__aliases__, _, [y]} ->
                 Atom.to_string(y)

@@ -3,15 +3,18 @@ defmodule QlcTest do
   require Qlc.Record
   
   @user  [id: nil, name: nil, age: nil]
+  @userp  [id: nil, name: nil, age: nil, sex: nil]
   @company  [id: nil, name: nil]
   @user_company  [user_id: nil, company_id: nil]
   @user_fields Keyword.keys(@user)
   @company_fields Keyword.keys(@company)
   @user_company_fields Keyword.keys(@user_company)
+  @userp_fields Keyword.keys(@userp)
 
   Qlc.Record.defrecord :user, @user
   Qlc.Record.defrecord :user_company, @user_company
   Qlc.Record.defrecord :company, @company
+  Qlc.Record.defrecord :user2, :userp, @userp
 
   doctest Qlc
   doctest Qlc.Record
@@ -24,6 +27,8 @@ defmodule QlcTest do
                                           [attributes: @company_fields])
     {:atomic, :ok} = :mnesia.create_table(:user_company, 
                                           [attributes: @user_company_fields])
+    {:atomic, :ok} = :mnesia.create_table(:userp, 
+                                          [attributes: @userp_fields])
     on_exit fn ->
               :mnesia.stop()
     end
@@ -66,19 +71,21 @@ defmodule QlcTest do
     u = user(id: 1, name: :foo, age: 10)
     u2 = user(id: 2, name: :bar, age: 20)
     u3 = user(id: 3, name: :baz, age: 20)
+    u4 = user2(id: 4, name: :biz, age: 21)
     c = company(id: 1, name: :apple)
     uc = user_company(user_id: 1, company_id: 1)
     r = :mnesia.transaction(fn() ->
                               :ok = :mnesia.write(u)
                               :ok = :mnesia.write(u2)
                               :ok = :mnesia.write(u3)
+                              :ok = :mnesia.write(u4)
                               :ok = :mnesia.write(c)
                               :ok = :mnesia.write(uc)
                             end)
     assert(r == {:atomic, :ok})
     #IO.puts('#{user!({:user, 1, <<"apple">>, 20}, :name)}')
     q = Qlc.q("""
-    [ N || X <- U, (N = #{user!(X, :name)}) =:= L1 orelse N =:= #{:bar}]
+    [ N || X <- U, (N = #{user2!(X, :name)}) =:= L1 orelse N =:= #{:bar}]
     """, 
       [U: :mnesia.table(:user),
        L1: :foo]
